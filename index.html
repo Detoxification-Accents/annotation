@@ -720,69 +720,14 @@
 
         const FLUENCY_LABELS = ['Very Poor', 'Poor', 'Fair', 'Good', 'Excellent'];
 
-        // Per-user localStorage helpers
-        // The annotator name is used as the local username.
-        // Each user gets separate saved annotations, dataset, and last position.
-        const GLOBAL_KEYS = {
-            activeUser: 'detox_active_user',
-            users: 'detox_users'
-        };
-
-        function normalizeUsername(name) {
-            return (name || '')
-                .trim()
-                .toLowerCase()
-                .replace(/\s+/g, '_')
-                .replace(/[^a-z0-9_\-@.]/g, '');
-        }
-
-        function getCurrentUsername() {
-            if (state.session && state.session.username) return state.session.username;
-            const activeUser = localStorage.getItem(GLOBAL_KEYS.activeUser);
-            return activeUser || null;
-        }
-
-        function userKey(baseKey) {
-            const username = getCurrentUsername();
-            if (!username) return baseKey;
-            return `${baseKey}_${username}`;
-        }
-
-        function rememberUser(username) {
-            if (!username) return;
-            try {
-                const users = JSON.parse(localStorage.getItem(GLOBAL_KEYS.users) || '[]');
-                if (!users.includes(username)) {
-                    users.push(username);
-                    localStorage.setItem(GLOBAL_KEYS.users, JSON.stringify(users));
-                }
-                localStorage.setItem(GLOBAL_KEYS.activeUser, username);
-            } catch (error) {
-                console.error('Failed to remember user:', error);
-            }
-        }
-
-        function hasAnyPreviousWork() {
-            const users = JSON.parse(localStorage.getItem(GLOBAL_KEYS.users) || '[]');
-            if (users.length > 0) return true;
-
-            // Backward compatibility with older non-user-specific saves
-            return Boolean(
-                localStorage.getItem('detox_session') ||
-                localStorage.getItem('detox_annotations') ||
-                localStorage.getItem('detox_dataset') ||
-                localStorage.getItem('detox_current_index')
-            );
-        }
-
-        function getStorageKey(baseKey) {
-            return userKey(baseKey);
-        }
-
         // Initialize
         function init() {
-            // Check for previous work across all local users
-            if (hasAnyPreviousWork()) {
+            // Check for previous work
+            const hasSession = localStorage.getItem('detox_session');
+            const hasAnnotations = localStorage.getItem('detox_annotations');
+            const hasDataset = localStorage.getItem('detox_dataset');
+
+            if (hasSession || hasAnnotations || hasDataset) {
                 document.getElementById('previousWorkAlert').classList.remove('hidden');
             }
 
@@ -790,7 +735,6 @@
             if (state.session) {
                 loadDataset();
                 loadAnnotations();
-                loadCurrentIndex();
                 if (state.dataset.length > 0) {
                     showAnnotationScreen();
                 } else {
@@ -805,7 +749,7 @@
                 saveAnnotations();
                 
                 // Show warning if user hasn't exported recently
-                const lastExport = localStorage.getItem(getStorageKey('detox_last_export'));
+                const lastExport = localStorage.getItem('detox_last_export');
                 if (!lastExport || (Date.now() - parseInt(lastExport)) > 3600000) { // 1 hour
                     e.preventDefault();
                     e.returnValue = 'Have you exported your work? Click Export before closing to be safe.';
@@ -829,24 +773,15 @@
                 return;
             }
 
-            const username = normalizeUsername(name);
-            if (!username) {
-                showError('loginError', '❌ Please enter a valid username using letters, numbers, spaces, underscores, hyphens, @ or dots');
-                return;
-            }
-
             state.session = {
-                username: username,
                 annotator_name: name,
                 annotator_role: role,
                 start_time: new Date().toISOString()
             };
 
-            rememberUser(username);
             saveSession();
             loadDataset();
             loadAnnotations();
-            loadCurrentIndex();
 
             if (state.dataset.length > 0) {
                 showAnnotationScreen();
@@ -858,7 +793,7 @@
 
         // Check for existing dataset
         function checkExistingDataset() {
-            const hasDataset = localStorage.getItem(getStorageKey('detox_dataset')) || localStorage.getItem('detox_dataset');
+            const hasDataset = localStorage.getItem('detox_dataset');
             if (hasDataset) {
                 document.getElementById('existingDatasetWarning').classList.remove('hidden');
             }
@@ -903,10 +838,7 @@
                     
                     state.dataset = data;
                     state.currentIndex = 0;
-                    state.annotations = {};
                     saveDataset();
-                    saveAnnotations();
-                    saveCurrentIndex();
                     showSuccess('uploadError', `✅ Successfully loaded ${data.length} instances!`);
                     setTimeout(() => showAnnotationScreen(), 1500);
                 } catch (error) {
@@ -1175,7 +1107,6 @@
             updateSaveStatus('saving');
             try {
                 saveAnnotations();
-                saveCurrentIndex();
                 setTimeout(() => updateSaveStatus('saved'), 300);
             } catch (error) {
                 console.error('Auto-save failed:', error);
@@ -1235,7 +1166,6 @@
             
             if (state.currentIndex > 0) {
                 state.currentIndex--;
-                saveCurrentIndex();
                 renderInstance();
                 setTimeout(() => loadAnnotation(), 50);
             }
@@ -1246,7 +1176,6 @@
             
             if (state.currentIndex < state.dataset.length - 1) {
                 state.currentIndex++;
-                saveCurrentIndex();
                 renderInstance();
                 setTimeout(() => loadAnnotation(), 50);
             } else {
@@ -1284,7 +1213,7 @@
                 }, 100);
                 
                 // Record export time
-                localStorage.setItem(getStorageKey('detox_last_export'), Date.now().toString());
+                localStorage.setItem('detox_last_export', Date.now().toString());
                 
                 alert(`✅ Export successful!\n\n📁 File: annotations_${state.session.annotator_name}_${timestamp}.json\n📊 Total annotations: ${Object.keys(state.annotations).length}\n\n💡 Keep this file safe as a backup!`);
             } catch (error) {
@@ -1324,7 +1253,6 @@
                         });
                         
                         saveAnnotations();
-                        saveCurrentIndex();
                         loadAnnotation();
                         alert(`✅ Import complete!\n\n📥 Imported: ${imported} annotations\n⏭️  Skipped: ${skipped} (already annotated)\n\nYour work has been automatically saved.`);
                     } else {
@@ -1347,15 +1275,15 @@
             // Final save
             saveAnnotations();
             
-            // Clear only the active login marker. User-specific work stays saved.
-            localStorage.removeItem(GLOBAL_KEYS.activeUser);
+            // Clear session but keep data
+            localStorage.removeItem('detox_session');
             location.reload();
         }
 
         // Backup Info
         function showBackupInfo() {
             const annotationCount = Object.keys(state.annotations).length;
-            const lastExport = localStorage.getItem(getStorageKey('detox_last_export'));
+            const lastExport = localStorage.getItem('detox_last_export');
             const lastExportDate = lastExport ? new Date(parseInt(lastExport)).toLocaleString() : 'Never';
             
             const storageUsed = new Blob([JSON.stringify(state.annotations)]).size;
@@ -1403,7 +1331,7 @@
         // Storage
         function saveSession() {
             try {
-                localStorage.setItem(getStorageKey('detox_session'), JSON.stringify(state.session));
+                localStorage.setItem('detox_session', JSON.stringify(state.session));
             } catch (error) {
                 console.error('Failed to save session:', error);
                 alert('⚠️ Warning: Failed to save session. Storage may be full.');
@@ -1412,10 +1340,7 @@
 
         function loadSession() {
             try {
-                const activeUser = localStorage.getItem(GLOBAL_KEYS.activeUser);
-                const data = activeUser
-                    ? localStorage.getItem(`detox_session_${activeUser}`)
-                    : localStorage.getItem('detox_session');
+                const data = localStorage.getItem('detox_session');
                 if (data) {
                     state.session = JSON.parse(data);
                 }
@@ -1426,7 +1351,7 @@
 
         function saveDataset() {
             try {
-                localStorage.setItem(getStorageKey('detox_dataset'), JSON.stringify(state.dataset));
+                localStorage.setItem('detox_dataset', JSON.stringify(state.dataset));
             } catch (error) {
                 console.error('Failed to save dataset:', error);
                 alert('⚠️ Warning: Dataset is too large for browser storage. Consider working in smaller batches.');
@@ -1435,7 +1360,7 @@
 
         function loadDataset() {
             try {
-                const data = localStorage.getItem(getStorageKey('detox_dataset')) || localStorage.getItem('detox_dataset');
+                const data = localStorage.getItem('detox_dataset');
                 if (data) {
                     state.dataset = JSON.parse(data);
                 }
@@ -1448,8 +1373,8 @@
             try {
                 // Use compression-friendly storage for large datasets
                 const annotationsData = JSON.stringify(state.annotations);
-                localStorage.setItem(getStorageKey('detox_annotations'), annotationsData);
-                localStorage.setItem(getStorageKey('detox_last_save'), Date.now().toString());
+                localStorage.setItem('detox_annotations', annotationsData);
+                localStorage.setItem('detox_last_save', Date.now().toString());
                 
                 // Check storage size and warn if getting large
                 const sizeKB = (annotationsData.length / 1024).toFixed(2);
@@ -1467,41 +1392,12 @@
 
         function loadAnnotations() {
             try {
-                const data = localStorage.getItem(getStorageKey('detox_annotations')) || localStorage.getItem('detox_annotations');
+                const data = localStorage.getItem('detox_annotations');
                 if (data) {
                     state.annotations = JSON.parse(data);
                 }
             } catch (error) {
                 console.error('Failed to load annotations:', error);
-            }
-        }
-
-        function saveCurrentIndex() {
-            try {
-                localStorage.setItem(getStorageKey('detox_current_index'), state.currentIndex.toString());
-            } catch (error) {
-                console.error('Failed to save current index:', error);
-            }
-        }
-
-        function loadCurrentIndex() {
-            try {
-                const data = localStorage.getItem(getStorageKey('detox_current_index')) || localStorage.getItem('detox_current_index');
-                if (data) {
-                    const parsedIndex = parseInt(data, 10);
-                    if (!Number.isNaN(parsedIndex)) {
-                        state.currentIndex = parsedIndex;
-                    }
-                }
-
-                if (state.dataset.length > 0) {
-                    if (state.currentIndex < 0) state.currentIndex = 0;
-                    if (state.currentIndex >= state.dataset.length) {
-                        state.currentIndex = state.dataset.length - 1;
-                    }
-                }
-            } catch (error) {
-                console.error('Failed to load current index:', error);
             }
         }
 
