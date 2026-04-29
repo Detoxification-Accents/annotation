@@ -747,6 +747,7 @@
             // Warn before closing if there are unsaved changes
             window.addEventListener('beforeunload', function(e) {
                 // Always save before leaving
+                saveLastAnnotatedPosition();
                 saveAnnotations();
                 
                 // Show warning if user hasn't exported recently
@@ -840,6 +841,8 @@
                     
                     state.dataset = data;
                     state.currentIndex = 0;
+                    localStorage.removeItem('detox_last_annotated_index');
+                    localStorage.removeItem('detox_last_annotated_id');
                     saveDataset();
                     saveCurrentIndex();
                     showSuccess('uploadError', `✅ Successfully loaded ${data.length} instances!`);
@@ -1109,6 +1112,7 @@
         function autoSave() {
             updateSaveStatus('saving');
             try {
+                saveLastAnnotatedPosition();
                 saveAnnotations();
                 setTimeout(() => updateSaveStatus('saved'), 300);
             } catch (error) {
@@ -1257,6 +1261,7 @@
                             }
                         });
                         
+                        saveLastAnnotatedPosition();
                         saveAnnotations();
                         loadAnnotation();
                         alert(`✅ Import complete!\n\n📥 Imported: ${imported} annotations\n⏭️  Skipped: ${skipped} (already annotated)\n\nYour work has been automatically saved.`);
@@ -1414,14 +1419,66 @@
             }
         }
 
+        function saveLastAnnotatedPosition() {
+            try {
+                const instance = state.dataset[state.currentIndex];
+                if (!instance) return;
+
+                localStorage.setItem('detox_current_index', state.currentIndex.toString());
+                localStorage.setItem('detox_last_annotated_index', state.currentIndex.toString());
+                localStorage.setItem('detox_last_annotated_id', instance.id);
+            } catch (error) {
+                console.error('Failed to save last annotated position:', error);
+            }
+        }
+
+        function findResumeIndexFromAnnotations() {
+            const annotatedIndexes = Object.keys(state.annotations)
+                .map(index => parseInt(index, 10))
+                .filter(index => !Number.isNaN(index));
+
+            if (annotatedIndexes.length === 0) return 0;
+
+            // Resume from the highest annotated instance.
+            // Change +0 to +1 below if you prefer opening the next unannotated instance instead.
+            return Math.max(...annotatedIndexes);
+        }
+
         function loadCurrentIndex() {
             try {
-                const data = localStorage.getItem('detox_current_index');
-                if (data) {
-                    state.currentIndex = parseInt(data);
+                const savedIndex = localStorage.getItem('detox_current_index');
+                const lastAnnotatedIndex = localStorage.getItem('detox_last_annotated_index');
+                const lastAnnotatedId = localStorage.getItem('detox_last_annotated_id');
+
+                let indexToLoad = null;
+
+                if (savedIndex !== null && savedIndex !== '') {
+                    indexToLoad = parseInt(savedIndex, 10);
+                } else if (lastAnnotatedIndex !== null && lastAnnotatedIndex !== '') {
+                    indexToLoad = parseInt(lastAnnotatedIndex, 10);
+                } else if (lastAnnotatedId && state.dataset.length > 0) {
+                    const indexById = state.dataset.findIndex(item => item.id === lastAnnotatedId);
+                    if (indexById >= 0) indexToLoad = indexById;
+                } else {
+                    indexToLoad = findResumeIndexFromAnnotations();
                 }
+
+                if (Number.isNaN(indexToLoad) || indexToLoad === null) {
+                    indexToLoad = 0;
+                }
+
+                // Keep the index inside dataset bounds.
+                if (state.dataset.length > 0) {
+                    indexToLoad = Math.max(0, Math.min(indexToLoad, state.dataset.length - 1));
+                } else {
+                    indexToLoad = 0;
+                }
+
+                state.currentIndex = indexToLoad;
+                saveCurrentIndex();
             } catch (error) {
                 console.error('Failed to load current index:', error);
+                state.currentIndex = 0;
             }
         }
 
@@ -1447,6 +1504,7 @@
 
         // Final save on unload
         window.addEventListener('beforeunload', function() {
+            saveLastAnnotatedPosition();
             saveAnnotations();
         });
 
