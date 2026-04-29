@@ -735,6 +735,7 @@
             if (state.session) {
                 loadDataset();
                 loadAnnotations();
+                loadCurrentIndex();
                 if (state.dataset.length > 0) {
                     showAnnotationScreen();
                 } else {
@@ -782,6 +783,7 @@
             saveSession();
             loadDataset();
             loadAnnotations();
+            loadCurrentIndex();
 
             if (state.dataset.length > 0) {
                 showAnnotationScreen();
@@ -839,6 +841,7 @@
                     state.dataset = data;
                     state.currentIndex = 0;
                     saveDataset();
+                    saveCurrentIndex();
                     showSuccess('uploadError', `✅ Successfully loaded ${data.length} instances!`);
                     setTimeout(() => showAnnotationScreen(), 1500);
                 } catch (error) {
@@ -1166,6 +1169,7 @@
             
             if (state.currentIndex > 0) {
                 state.currentIndex--;
+                saveCurrentIndex();
                 renderInstance();
                 setTimeout(() => loadAnnotation(), 50);
             }
@@ -1176,6 +1180,7 @@
             
             if (state.currentIndex < state.dataset.length - 1) {
                 state.currentIndex++;
+                saveCurrentIndex();
                 renderInstance();
                 setTimeout(() => loadAnnotation(), 50);
             } else {
@@ -1398,6 +1403,25 @@
                 }
             } catch (error) {
                 console.error('Failed to load annotations:', error);
+            }
+        }
+
+        function saveCurrentIndex() {
+            try {
+                localStorage.setItem('detox_current_index', state.currentIndex.toString());
+            } catch (error) {
+                console.error('Failed to save current index:', error);
+            }
+        }
+
+        function loadCurrentIndex() {
+            try {
+                const data = localStorage.getItem('detox_current_index');
+                if (data) {
+                    state.currentIndex = parseInt(data);
+                }
+            } catch (error) {
+                console.error('Failed to load current index:', error);
             }
         }
 
