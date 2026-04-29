@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arabic Detoxification Annotation Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        h1, h2, h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            font-size: 22px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            font-size: 18px;
+            color: #667eea;
+        }
+
+        .rtl {
+            direction: rtl;
+            text-align: right;
+        }
+
+        .ltr {
+            direction: ltr;
+            text-align: left;
+        }
+
+        /* Login Screen */
+        .login-screen {
+            max-width: 500px;
+            margin: 100px auto;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input[type="text"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #5568d3;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #10b981;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header-info h2 {
+            border: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header-info p {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Save Status */
+        .save-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .save-status.saved {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .save-status.saving {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .save-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            margin-top: 15px;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: #e0e0e0;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+        }
+
+        /* Original Text */
+        .original-text {
+            background: #fff5f5;
+            border: 2px solid #fc8181;
+            border-radius: 8px;
+            padding: 20px;
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        /* Dialect Card */
+        .dialect-card {
+            border: 3px solid #667eea;
+            margin-bottom: 20px;
+        }
+
+        .dialect-header {
+            background: #f0f4ff;
+            padding: 15px;
+            border-radius: 8px 8px 0 0;
+            margin: -30px -30px 20px -30px;
+        }
+
+        /* Version Container */
+        .version-container {
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .version-container.polite {
+            background: #f0fdf4;
+            border-left: 4px solid #22c55e;
+        }
+
+        .version-container.tough {
+            background: #fff7ed;
+            border-left: 4px solid #f97316;
+        }
+
+        .detox-text {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+            margin: 15px 0;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        /* Checkboxes */
+        .checkbox-group {
+            margin: 15px 0;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .checkbox-item label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        /* Fluency Rating */
+        .fluency-rating {
+            margin: 15px 0;
+        }
+
+        .rating-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .rating-btn {
+            flex: 1;
+            padding: 10px;
+            background: #f3f4f6;
+            border: 2px solid #d1d5db;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .rating-btn:hover {
+            background: #e5e7eb;
+        }
+
+        .rating-btn.active {
+            background: #667eea;
+            border-color: #667eea;
+            color: white;
+        }
+
+        .rating-btn .number {
+            font-size: 20px;
+            font-weight: bold;
+            display: block;
+        }
+
+        .rating-btn .label {
+            font-size: 11px;
+            display: block;
+            margin-top: 4px;
+        }
+
+        /* Style Preference */
+        .style-preference {
+            background: #faf5ff;
+            border-left: 4px solid #a855f7;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .radio-group {
+            margin-top: 10px;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .radio-item label {
+            margin: 0;
+            cursor: pointer;
+        }
+
+        /* Navigation */
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+        }
+
+        /* Alert */
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            border: 1px solid #fca5a5;
+            color: #991b1b;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            border: 1px solid #6ee7b7;
+            color: #065f46;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            border: 1px solid #93c5fd;
+            color: #1e40af;
+        }
+
+        .alert-warning {
+            background: #fef3c7;
+            border: 1px solid #fcd34d;
+            color: #92400e;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            color: #666;
+        }
+
+        /* Hidden */
+        .hidden {
+            display: none;
+        }
+
+        /* File Upload */
+        .file-upload {
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .file-upload:hover {
+            background: #f0f4ff;
+        }
+
+        .file-upload input[type="file"] {
+            display: none;
+        }
+
+        /* Info Box */
+        .info-box {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+
+        .info-box p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .card {
+                padding: 15px;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .header-actions {
+                flex-direction: column;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+
+            .rating-buttons {
+                flex-direction: column;
+            }
+
+            button {
+                padding: 16px 20px; /* Larger touch targets */
+                width: 100%;
+            }
+
+            .version-container {
+                padding: 10px;
+            }
+
+            .detox-text {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-screen">
+        <div class="card">
+            <h2 style="text-align: center; color: #667eea;">Annotation Platform</h2>
+            <p style="text-align: center; color: #666; margin-bottom: 30px;">Arabic Detoxification Quality Assessment</p>
+            
+            <!-- Previous Work Detection -->
+            <div id="previousWorkAlert" class="alert alert-info hidden">
+                <strong>✅ Previous work found!</strong>
+                <p style="margin-top: 8px;">We found your previous annotations. After logging in, your work will be automatically restored.</p>
+            </div>
+
+            <div class="input-group">
+                <label for="annotatorName">Annotator Name</label>
+                <input type="text" id="annotatorName" placeholder="Enter your name">
+            </div>
+
+            <div class="input-group">
+                <label for="annotatorRole">Your Role / Expertise</label>
+                <select id="annotatorRole">
+                    <option value="">Select your role</option>
+                    <option value="egyptian">Egyptian Arabic Expert</option>
+                    <option value="tunisian">Tunisian Arabic Expert</option>
+                    <option value="levantine">Levantine Arabic Expert</option>
+                    <option value="gulf">Gulf Arabic Expert</option>
+                    <option value="english">English Expert</option>
+                    <option value="german">German Expert</option>
+                    <option value="all">All Languages Expert</option>
+                </select>
+            </div>
+
+            <div id="loginError" class="alert alert-error hidden"></div>
+
+            <button onclick="handleLogin()" class="btn-full">Start Annotating</button>
+
+                <div class="info-box" style="margin-top: 20px;">
+                <p><strong>💾 Auto-Save Enabled:</strong></p>
+                <p>• Your work is automatically saved after every action</p>
+                <p>• Progress is saved when you click Next/Previous</p>
+                <p>• You can safely close and reopen anytime</p>
+                <p>• Export regularly for extra backup!</p>
+                <p>• <strong>For large datasets (5000+):</strong> Export every 500-1000 annotations</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dataset Upload Screen -->
+    <div id="uploadScreen" class="hidden">
+        <div class="container">
+            <h1>📂 Load Dataset</h1>
+            <div class="card">
+                <h2>Upload Your Dataset</h2>
+                
+                <!-- Existing Dataset Warning -->
+                <div id="existingDatasetWarning" class="alert alert-warning hidden">
+                    <strong>⚠️ Warning: You already have a dataset loaded!</strong>
+                    <p style="margin-top: 8px;">Uploading a new dataset will replace the current one. Make sure you've exported your annotations first!</p>
+                    <div class="btn-group" style="margin-top: 15px;">
+                        <button onclick="handleExportBeforeUpload()" class="btn-success">Export Current Work First</button>
+                        <button onclick="continueWithExistingDataset()" class="btn-secondary">Continue with Current Dataset</button>
+                    </div>
+                </div>
+
+                <p style="margin-bottom: 20px; color: #666;">Please upload a JSON file containing the data to annotate</p>
+                
+                <div class="file-upload" onclick="document.getElementById('datasetFile').click()">
+                    <p style="font-size: 48px; margin-bottom: 10px;">📁</p>
+                    <p style="font-size: 18px; font-weight: 600; margin-bottom: 5px;">Click to upload dataset</p>
+                    <p style="color: #666; font-size: 14px;">JSON format required</p>
+                    <input type="file" id="datasetFile" accept=".json" onchange="handleDatasetUpload(event)">
+                </div>
+
+                <div id="uploadError" class="alert alert-error hidden" style="margin-top: 20px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Annotation Screen -->
+    <div id="annotationScreen" class="hidden">
+        <div class="container">
+            <!-- Header -->
+            <div class="header">
+                <div class="header-info">
+                    <h2 id="headerTitle">Annotation Platform</h2>
+                    <p id="headerUser"></p>
+                    <div class="save-status saved" id="saveStatus">
+                        <span class="save-indicator"></span>
+                        <span id="saveStatusText">All changes saved</span>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-info">
+                            <span id="progressText">Progress: 0 / 0</span>
+                            <span id="progressPercent">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button onclick="handleExport()">📥 Export</button>
+                    <button onclick="document.getElementById('importFile').click()">📤 Import</button>
+                    <button onclick="showBackupInfo()">💾 Backup Info</button>
+                    <button onclick="handleLogout()" class="btn-secondary">🚪 Logout</button>
+                </div>
+            </div>
+
+            <!-- Original Text -->
+            <div class="card">
+                <h2>Original Toxic Text</h2>
+                <div class="original-text rtl" id="originalText"></div>
+            </div>
+
+            <!-- Dialects Container -->
+            <div id="dialectsContainer"></div>
+
+            <!-- Navigation -->
+            <div class="navigation">
+                <button onclick="handlePrevious()" id="prevBtn">← Previous</button>
+                <div id="navInfo" class="save-status saved">
+                    <span class="save-indicator"></span>
+                    <span>Auto-save active</span>
+                </div>
+                <button onclick="handleSaveAndNext()" id="nextBtn">Save & Next →</button>
+            </div>
+        </div>
+
+        <input type="file" id="importFile" accept=".json" onchange="handleImport(event)" style="display: none;">
+    </div>
+
+    <!-- Backup Info Modal -->
+    <div id="backupModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>💾 Backup Information</h3>
+                <button class="close-btn" onclick="closeBackupModal()">×</button>
+            </div>
+            <div id="backupInfo"></div>
+        </div>
+    </div>
+
+    <script>
+        // Global State
+        let state = {
+            session: null,
+            dataset: [],
+            currentIndex: 0,
+            annotations: {},
+            lastSaveTime: null,
+            hasUnsavedChanges: false
+        };
+
+        const DIALECT_LABELS = {
+            egyptian: 'Egyptian Arabic',
+            tunisian: 'Tunisian Arabic',
+            levantine: 'Levantine Arabic',
+            gulf: 'Gulf Arabic',
+            english: 'English',
+            german: 'German'
+        };
+
+        const FLUENCY_LABELS = ['Very Poor', 'Poor', 'Fair', 'Good', 'Excellent'];
+
+        // Initialize
+        function init() {
+            // Check for previous work
+            const hasSession = localStorage.getItem('detox_session');
+            const hasAnnotations = localStorage.getItem('detox_annotations');
+            const hasDataset = localStorage.getItem('detox_dataset');
+
+            if (hasSession || hasAnnotations || hasDataset) {
+                document.getElementById('previousWorkAlert').classList.remove('hidden');
+            }
+
+            loadSession();
+            if (state.session) {
+                loadDataset();
+                loadAnnotations();
+                if (state.dataset.length > 0) {
+                    showAnnotationScreen();
+                } else {
+                    checkExistingDataset();
+                    showUploadScreen();
+                }
+            }
+
+            // Warn before closing if there are unsaved changes
+            window.addEventListener('beforeunload', function(e) {
+                // Always save before leaving
+                saveAnnotations();
+                
+                // Show warning if user hasn't exported recently
+                const lastExport = localStorage.getItem('detox_last_export');
+                if (!lastExport || (Date.now() - parseInt(lastExport)) > 3600000) { // 1 hour
+                    e.preventDefault();
+                    e.returnValue = 'Have you exported your work? Click Export before closing to be safe.';
+                    return e.returnValue;
+                }
+            });
+        }
+
+        // Login
+        function handleLogin() {
+            const name = document.getElementById('annotatorName').value.trim();
+            const role = document.getElementById('annotatorRole').value;
+            
+            if (!name) {
+                showError('loginError', '❌ Please enter your name');
+                return;
+            }
+            
+            if (!role) {
+                showError('loginError', '❌ Please select your role');
+                return;
+            }
+
+            state.session = {
+                annotator_name: name,
+                annotator_role: role,
+                start_time: new Date().toISOString()
+            };
+
+            saveSession();
+            loadDataset();
+            loadAnnotations();
+
+            if (state.dataset.length > 0) {
+                showAnnotationScreen();
+            } else {
+                checkExistingDataset();
+                showUploadScreen();
+            }
+        }
+
+        // Check for existing dataset
+        function checkExistingDataset() {
+            const hasDataset = localStorage.getItem('detox_dataset');
+            if (hasDataset) {
+                document.getElementById('existingDatasetWarning').classList.remove('hidden');
+            }
+        }
+
+        function continueWithExistingDataset() {
+            loadDataset();
+            if (state.dataset.length > 0) {
+                showAnnotationScreen();
+            } else {
+                showError('uploadError', '❌ No valid dataset found. Please upload a new one.');
+            }
+        }
+
+        function handleExportBeforeUpload() {
+            handleExport();
+            setTimeout(() => {
+                alert('✅ Export complete! Now you can safely upload a new dataset.');
+                document.getElementById('existingDatasetWarning').classList.add('hidden');
+            }, 500);
+        }
+
+        // Dataset Upload
+        function handleDatasetUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (!Array.isArray(data) || data.length === 0) {
+                        showError('uploadError', '❌ Invalid dataset format. Please upload a valid JSON array.');
+                        return;
+                    }
+
+                    // Validate structure
+                    if (!data[0].id || !data[0].original_text || !data[0].detoxifications) {
+                        showError('uploadError', '❌ Invalid dataset structure. Missing required fields (id, original_text, detoxifications).');
+                        return;
+                    }
+                    
+                    state.dataset = data;
+                    state.currentIndex = 0;
+                    saveDataset();
+                    showSuccess('uploadError', `✅ Successfully loaded ${data.length} instances!`);
+                    setTimeout(() => showAnnotationScreen(), 1500);
+                } catch (error) {
+                    showError('uploadError', '❌ Failed to parse JSON file. Make sure it\'s valid JSON format.');
+                    console.error('Parse error:', error);
+                }
+            };
+            reader.onerror = function() {
+                showError('uploadError', '❌ Failed to read file. Please try again.');
+            };
+            reader.readAsText(file);
+        }
+
+        // Show Screens
+        function showUploadScreen() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('uploadScreen').classList.remove('hidden');
+            document.getElementById('annotationScreen').classList.add('hidden');
+        }
+
+        function showAnnotationScreen() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('uploadScreen').classList.add('hidden');
+            document.getElementById('annotationScreen').classList.remove('hidden');
+            
+            updateHeader();
+            renderInstance();
+            // Small delay to ensure DOM is ready before loading annotations
+            setTimeout(() => loadAnnotation(), 100);
+        }
+
+        // Header
+        function updateHeader() {
+            const role = DIALECT_LABELS[state.session.annotator_role] || state.session.annotator_role;
+            document.getElementById('headerUser').textContent = 
+                `${state.session.annotator_name} (${role})`;
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const total = state.dataset.length;
+            const current = state.currentIndex + 1;
+            const percent = Math.round((current / total) * 100);
+            
+            document.getElementById('progressText').textContent = `Progress: ${current} / ${total}`;
+            document.getElementById('progressPercent').textContent = `${percent}%`;
+            document.getElementById('progressFill').style.width = `${percent}%`;
+        }
+
+        // Save Status
+        function updateSaveStatus(status) {
+            const statusEl = document.getElementById('saveStatus');
+            const textEl = document.getElementById('saveStatusText');
+            
+            if (status === 'saving') {
+                statusEl.className = 'save-status saving';
+                textEl.textContent = 'Saving...';
+            } else if (status === 'saved') {
+                statusEl.className = 'save-status saved';
+                const time = new Date().toLocaleTimeString();
+                textEl.textContent = `Saved at ${time}`;
+                state.lastSaveTime = time;
+            }
+        }
+
+        // Render Instance
+        function renderInstance() {
+            const instance = state.dataset[state.currentIndex];
+            if (!instance) {
+                alert('❌ Error: No instance found at this index. Please restart the application.');
+                return;
+            }
+
+            document.getElementById('originalText').textContent = instance.original_text;
+            
+            const dialects = getRelevantDialects();
+            const container = document.getElementById('dialectsContainer');
+            container.innerHTML = '';
+
+            dialects.forEach(dialect => {
+                const dialectDiv = createDialectCard(dialect, instance);
+                container.appendChild(dialectDiv);
+            });
+
+            updateProgress();
+            updateNavigationButtons();
+        }
+
+        function getRelevantDialects() {
+            if (state.session.annotator_role === 'all') {
+                return ['egyptian', 'tunisian', 'levantine', 'gulf', 'english', 'german'];
+            }
+            return [state.session.annotator_role];
+        }
+
+        function createDialectCard(dialect, instance) {
+            const card = document.createElement('div');
+            card.className = 'card dialect-card';
+            
+            const isRTL = !['english', 'german'].includes(dialect);
+            const dir = isRTL ? 'rtl' : 'ltr';
+            
+            card.innerHTML = `
+                <div class="dialect-header">
+                    <h2>${DIALECT_LABELS[dialect]}</h2>
+                </div>
+                
+                <!-- Version 1 (Polite) -->
+                <div class="version-container polite">
+                    <h3>Version 1 (Polite)</h3>
+                    <div class="detox-text ${dir}">${instance.detoxifications[dialect].version1_polite}</div>
+                    ${createAnnotationFields(dialect, 'version1')}
+                </div>
+                
+                <!-- Version 2 (Tough) -->
+                <div class="version-container tough">
+                    <h3>Version 2 (Tough)</h3>
+                    <div class="detox-text ${dir}">${instance.detoxifications[dialect].version2_tough}</div>
+                    ${createAnnotationFields(dialect, 'version2')}
+                </div>
+                
+                <!-- Style Preference -->
+                <div class="style-preference">
+                    <label><strong>Which version is better?</strong></label>
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <input type="radio" name="style_${dialect}" value="version1" 
+                                onchange="updateStylePreference('${dialect}', 'version1')">
+                            <label>Version 1 (Polite)</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" name="style_${dialect}" value="version2" 
+                                onchange="updateStylePreference('${dialect}', 'version2')">
+                            <label>Version 2 (Tough)</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" name="style_${dialect}" value="both" 
+                                onchange="updateStylePreference('${dialect}', 'both')">
+                            <label>Both are good</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" name="style_${dialect}" value="neither" 
+                                onchange="updateStylePreference('${dialect}', 'neither')">
+                            <label>Neither</label>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            return card;
+        }
+
+        function createAnnotationFields(dialect, version) {
+            return `
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="${dialect}_${version}_detox" 
+                            onchange="updateCheckbox('${dialect}', '${version}', 'is_detoxified', this.checked)">
+                        <label for="${dialect}_${version}_detox">✓ Is Detoxified</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="${dialect}_${version}_meaning" 
+                            onchange="updateCheckbox('${dialect}', '${version}', 'preserves_meaning', this.checked)">
+                        <label for="${dialect}_${version}_meaning">✓ Preserves Meaning</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="${dialect}_${version}_dialect" 
+                            onchange="updateCheckbox('${dialect}', '${version}', 'correct_dialect', this.checked)">
+                        <label for="${dialect}_${version}_dialect">✓ Correct Dialect</label>
+                    </div>
+                </div>
+                
+                <div class="fluency-rating">
+                    <label><strong>Fluency Rating</strong></label>
+                    <div class="rating-buttons">
+                        ${[1,2,3,4,5].map(rating => `
+                            <div class="rating-btn" onclick="updateFluency('${dialect}', '${version}', ${rating})" 
+                                id="${dialect}_${version}_rating_${rating}">
+                                <span class="number">${rating}</span>
+                                <span class="label">${FLUENCY_LABELS[rating-1]}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                
+                <div class="input-group" style="margin-top: 15px;">
+                    <label><strong>Correction (Optional)</strong></label>
+                    <textarea id="${dialect}_${version}_correction" 
+                        onchange="updateCorrection('${dialect}', '${version}', this.value)"
+                        placeholder="Write corrected version here..."></textarea>
+                </div>
+            `;
+        }
+
+        // Update Functions (ALL AUTO-SAVE)
+        function updateCheckbox(dialect, version, field, value) {
+            ensureAnnotationExists(dialect, version);
+            state.annotations[state.currentIndex].annotations[dialect][version][field] = value;
+            autoSave();
+        }
+
+        function updateFluency(dialect, version, rating) {
+            ensureAnnotationExists(dialect, version);
+            state.annotations[state.currentIndex].annotations[dialect][version].fluency_rating = rating;
+            
+            // Update UI
+            for (let i = 1; i <= 5; i++) {
+                const btn = document.getElementById(`${dialect}_${version}_rating_${i}`);
+                if (btn) {
+                    if (i === rating) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                }
+            }
+            
+            autoSave();
+        }
+
+        function updateCorrection(dialect, version, value) {
+            ensureAnnotationExists(dialect, version);
+            state.annotations[state.currentIndex].annotations[dialect][version].correction = value;
+            autoSave();
+        }
+
+        function updateStylePreference(dialect, preference) {
+            ensureAnnotationExists(dialect, 'version1');
+            state.annotations[state.currentIndex].annotations[dialect].style_preference = preference;
+            autoSave();
+        }
+
+        function ensureAnnotationExists(dialect, version) {
+            const instanceId = state.dataset[state.currentIndex].id;
+            
+            if (!state.annotations[state.currentIndex]) {
+                state.annotations[state.currentIndex] = {
+                    instance_id: instanceId,
+                    annotator_role: state.session.annotator_role,
+                    annotations: {},
+                    timestamp: new Date().toISOString()
+                };
+            }
+            
+            if (!state.annotations[state.currentIndex].annotations[dialect]) {
+                state.annotations[state.currentIndex].annotations[dialect] = {
+                    version1: createEmptyCriteria(),
+                    version2: createEmptyCriteria(),
+                    style_preference: null
+                };
+            }
+        }
+
+        function createEmptyCriteria() {
+            return {
+                is_detoxified: false,
+                preserves_meaning: false,
+                correct_dialect: false,
+                fluency_rating: 3,
+                correction: ''
+            };
+        }
+
+        // Auto-Save
+        function autoSave() {
+            updateSaveStatus('saving');
+            try {
+                saveAnnotations();
+                setTimeout(() => updateSaveStatus('saved'), 300);
+            } catch (error) {
+                console.error('Auto-save failed:', error);
+                alert('⚠️ Warning: Failed to save your work. Please export immediately!');
+            }
+        }
+
+        // Load Annotation
+        function loadAnnotation() {
+            const annotation = state.annotations[state.currentIndex];
+            if (!annotation) return;
+
+            // Load saved values into UI
+            Object.keys(annotation.annotations).forEach(dialect => {
+                const dialectData = annotation.annotations[dialect];
+                
+                ['version1', 'version2'].forEach(version => {
+                    const versionData = dialectData[version];
+                    
+                    // Checkboxes
+                    const detoxBox = document.getElementById(`${dialect}_${version}_detox`);
+                    const meaningBox = document.getElementById(`${dialect}_${version}_meaning`);
+                    const dialectBox = document.getElementById(`${dialect}_${version}_dialect`);
+                    
+                    if (detoxBox) detoxBox.checked = versionData.is_detoxified;
+                    if (meaningBox) meaningBox.checked = versionData.preserves_meaning;
+                    if (dialectBox) dialectBox.checked = versionData.correct_dialect;
+                    
+                    // Fluency rating
+                    for (let i = 1; i <= 5; i++) {
+                        const btn = document.getElementById(`${dialect}_${version}_rating_${i}`);
+                        if (btn) {
+                            if (i === versionData.fluency_rating) {
+                                btn.classList.add('active');
+                            } else {
+                                btn.classList.remove('active');
+                            }
+                        }
+                    }
+                    
+                    // Correction
+                    const correctionField = document.getElementById(`${dialect}_${version}_correction`);
+                    if (correctionField) correctionField.value = versionData.correction || '';
+                });
+                
+                // Style preference
+                if (dialectData.style_preference) {
+                    const radio = document.querySelector(`input[name="style_${dialect}"][value="${dialectData.style_preference}"]`);
+                    if (radio) radio.checked = true;
+                }
+            });
+        }
+
+        // Navigation
+        function handlePrevious() {
+            autoSave(); // Save before moving
+            
+            if (state.currentIndex > 0) {
+                state.currentIndex--;
+                renderInstance();
+                setTimeout(() => loadAnnotation(), 50);
+            }
+        }
+
+        function handleSaveAndNext() {
+            autoSave(); // Save before moving
+            
+            if (state.currentIndex < state.dataset.length - 1) {
+                state.currentIndex++;
+                renderInstance();
+                setTimeout(() => loadAnnotation(), 50);
+            } else {
+                alert('🎉 You have reached the end of the dataset!\n\n✅ All your work has been saved automatically.\n💾 Click Export to download your annotations.');
+            }
+        }
+
+        function updateNavigationButtons() {
+            document.getElementById('prevBtn').disabled = state.currentIndex === 0;
+        }
+
+        // Export/Import
+        function handleExport() {
+            try {
+                const exportData = {
+                    export_date: new Date().toISOString(),
+                    annotator: state.session.annotator_name,
+                    annotator_role: state.session.annotator_role,
+                    total_annotations: Object.keys(state.annotations).length,
+                    annotations: Object.values(state.annotations)
+                };
+
+                const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
+                a.download = `annotations_${state.session.annotator_name}_${timestamp}.json`;
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 100);
+                
+                // Record export time
+                localStorage.setItem('detox_last_export', Date.now().toString());
+                
+                alert(`✅ Export successful!\n\n📁 File: annotations_${state.session.annotator_name}_${timestamp}.json\n📊 Total annotations: ${Object.keys(state.annotations).length}\n\n💡 Keep this file safe as a backup!`);
+            } catch (error) {
+                console.error('Export failed:', error);
+                alert('❌ Export failed. Please try again or contact support.');
+            }
+        }
+
+        function handleImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!confirm('⚠️ Importing will merge with your current work.\n\n• Imported annotations will be added\n• Existing annotations for the same instances will be kept\n\nContinue?')) {
+                event.target.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.annotations && Array.isArray(data.annotations)) {
+                        let imported = 0;
+                        let skipped = 0;
+                        
+                        // Merge imported annotations
+                        data.annotations.forEach(ann => {
+                            const index = state.dataset.findIndex(d => d.id === ann.instance_id);
+                            if (index >= 0) {
+                                if (!state.annotations[index]) {
+                                    state.annotations[index] = ann;
+                                    imported++;
+                                } else {
+                                    skipped++;
+                                }
+                            }
+                        });
+                        
+                        saveAnnotations();
+                        loadAnnotation();
+                        alert(`✅ Import complete!\n\n📥 Imported: ${imported} annotations\n⏭️  Skipped: ${skipped} (already annotated)\n\nYour work has been automatically saved.`);
+                    } else {
+                        alert('❌ Invalid import file format.');
+                    }
+                } catch (error) {
+                    console.error('Import error:', error);
+                    alert('❌ Failed to import annotations. Please check the file format.');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function handleLogout() {
+            if (!confirm('⚠️ Are you sure you want to logout?\n\n✅ Your work has been automatically saved.\n💾 But we recommend exporting before logout for extra safety!\n\nLogout now?')) {
+                return;
+            }
+
+            // Final save
+            saveAnnotations();
+            
+            // Clear session but keep data
+            localStorage.removeItem('detox_session');
+            location.reload();
+        }
+
+        // Backup Info
+        function showBackupInfo() {
+            const annotationCount = Object.keys(state.annotations).length;
+            const lastExport = localStorage.getItem('detox_last_export');
+            const lastExportDate = lastExport ? new Date(parseInt(lastExport)).toLocaleString() : 'Never';
+            
+            const storageUsed = new Blob([JSON.stringify(state.annotations)]).size;
+            const storageUsedKB = (storageUsed / 1024).toFixed(2);
+            
+            const info = `
+                <div class="info-box">
+                    <p><strong>📊 Current Session:</strong></p>
+                    <p>Annotator: ${state.session.annotator_name}</p>
+                    <p>Role: ${DIALECT_LABELS[state.session.annotator_role] || state.session.annotator_role}</p>
+                    <p>Total Instances: ${state.dataset.length}</p>
+                    <p>Annotated: ${annotationCount}</p>
+                </div>
+                
+                <div class="info-box">
+                    <p><strong>💾 Auto-Save Status:</strong></p>
+                    <p>Last saved: ${state.lastSaveTime || 'Just now'}</p>
+                    <p>Storage used: ${storageUsedKB} KB</p>
+                    <p>Last export: ${lastExportDate}</p>
+                </div>
+                
+                <div class="alert alert-info">
+                    <strong>💡 Backup Recommendations:</strong>
+                    <p style="margin-top: 8px;">
+                    • Export your work every 50-100 annotations<br>
+                    • Keep multiple backup files with dates<br>
+                    • Store backups in different locations<br>
+                    • Export before closing the browser
+                    </p>
+                </div>
+                
+                <button onclick="handleExport()" class="btn-success btn-full" style="margin-top: 15px;">
+                    Export Now
+                </button>
+            `;
+            
+            document.getElementById('backupInfo').innerHTML = info;
+            document.getElementById('backupModal').classList.add('show');
+        }
+
+        function closeBackupModal() {
+            document.getElementById('backupModal').classList.remove('show');
+        }
+
+        // Storage
+        function saveSession() {
+            try {
+                localStorage.setItem('detox_session', JSON.stringify(state.session));
+            } catch (error) {
+                console.error('Failed to save session:', error);
+                alert('⚠️ Warning: Failed to save session. Storage may be full.');
+            }
+        }
+
+        function loadSession() {
+            try {
+                const data = localStorage.getItem('detox_session');
+                if (data) {
+                    state.session = JSON.parse(data);
+                }
+            } catch (error) {
+                console.error('Failed to load session:', error);
+            }
+        }
+
+        function saveDataset() {
+            try {
+                localStorage.setItem('detox_dataset', JSON.stringify(state.dataset));
+            } catch (error) {
+                console.error('Failed to save dataset:', error);
+                alert('⚠️ Warning: Dataset is too large for browser storage. Consider working in smaller batches.');
+            }
+        }
+
+        function loadDataset() {
+            try {
+                const data = localStorage.getItem('detox_dataset');
+                if (data) {
+                    state.dataset = JSON.parse(data);
+                }
+            } catch (error) {
+                console.error('Failed to load dataset:', error);
+            }
+        }
+
+        function saveAnnotations() {
+            try {
+                // Use compression-friendly storage for large datasets
+                const annotationsData = JSON.stringify(state.annotations);
+                localStorage.setItem('detox_annotations', annotationsData);
+                localStorage.setItem('detox_last_save', Date.now().toString());
+                
+                // Check storage size and warn if getting large
+                const sizeKB = (annotationsData.length / 1024).toFixed(2);
+                if (sizeKB > 4000) { // Warn at 4MB (localStorage limit is ~5-10MB)
+                    console.warn('Storage is getting full. Consider exporting and working in batches.');
+                }
+            } catch (error) {
+                console.error('Failed to save annotations:', error);
+                if (error.name === 'QuotaExceededError') {
+                    alert('⚠️ CRITICAL: Storage is full!\n\n📥 EXPORT YOUR WORK NOW to save it.\n💡 Then consider working in smaller batches (e.g., 1000 instances at a time).');
+                }
+                throw error;
+            }
+        }
+
+        function loadAnnotations() {
+            try {
+                const data = localStorage.getItem('detox_annotations');
+                if (data) {
+                    state.annotations = JSON.parse(data);
+                }
+            } catch (error) {
+                console.error('Failed to load annotations:', error);
+            }
+        }
+
+        // Utility
+        function showError(elementId, message) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.className = 'alert alert-error';
+            el.classList.remove('hidden');
+        }
+
+        function showSuccess(elementId, message) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.className = 'alert alert-success';
+            el.classList.remove('hidden');
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            init();
+        };
+
+        // Final save on unload
+        window.addEventListener('beforeunload', function() {
+            saveAnnotations();
+        });
+
+        // Close modal on outside click
+        document.getElementById('backupModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeBackupModal();
+            }
+        });
+    </script>
+</body>
+</html>
+
